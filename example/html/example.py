@@ -1,6 +1,7 @@
 class myPYHTMLContent(object):
     
-    def __init__(self, RequestData, path, pyfile):
+    def __init__(self, config, RequestData, path, pyfile):
+        self.configuration = config
         self.RequestData = RequestData
         self.Path = path
         if path[-1]!="/":

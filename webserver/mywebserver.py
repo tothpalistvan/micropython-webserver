@@ -5,10 +5,11 @@ import uos,usocket as socket,sys,gc,time
 
 class myWebServer:
 
-    def __init__(self, connection):
+    def __init__(self, connection, configuration):
+        self.configuration = configuration
+        self.HTMLBasePath = self.configuration.getHTMLBasePath()
+        self.DefaultFile = self.configuration.getDefaultFile()
         self.connection = connection
-        self.HTMLBasePath = "/html"
-        self.DefaultFile = "index.html"
         self.HTTPRequestData = {}
         message = ''
         
@@ -76,7 +77,7 @@ class myWebServer:
 #        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.mysock = socket.socket()
         
-        ai = socket.getaddrinfo(self.connection.get_address(), 80)
+        ai = socket.getaddrinfo(self.connection.get_address(), self.connection.get_port())
         addr = ai[0][-1]
 
         self.mysock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -98,10 +99,11 @@ class myWebServer:
           request = retval
           
           #print(request)
-          status = "ok"
-          response = ""
-          message = ""
           if request:
+              status = "ok"
+              response = ""
+              message = ""
+              gc.collect()
               uri = self.explode_data(request)
               if 'Method' in self.HTTPRequestData.keys() and status=="ok":
                   if self.HTTPRequestData['Method'] not in ['GET','POST']:
@@ -147,9 +149,6 @@ class myWebServer:
                 if filename[-8:] == ".py.html":
                   filename = filename[:-5]
                 if self.fileExists(filename): 
-                  f = open( filename )
-                  myfiledata = f.read()
-                  f.close()
                   if filename[-3:] == ".py":
                     #print( self.HTTPRequestData )
                     cutpoint = filename.rfind("/")
@@ -158,15 +157,21 @@ class myWebServer:
                     sys.path.append(path)
                     mymodules = __import__(pyfile, globals(), locals(), [], 0)
 #                    print(mymodules)
-                    pyhtml = mymodules.myPYHTMLContent(self.HTTPRequestData, path, pyfile)
+                    pyhtml = mymodules.myPYHTMLContent(self.configuration, self.HTTPRequestData, path, pyfile)
                     sys.path.remove(path)
                     r = pyhtml.doMCUThings()
                     #if r==False:
                     response = pyhtml.generate()
                     del sys.modules[pyfile]
+                    del pyhtml
+                    del mymodules
                     gc.collect()
                   else:
-                    response = myfiledata
+                    f = open( filename )
+                    response = f.read()
+                    f.close()
+
+                  #print(gc.mem_free())
                     
                   message = 'HTTP/1.1 200 OK\n'
                 else:       

@@ -16,12 +16,33 @@ Installation:
 
 Configuration:
 --------------
-- Currently at the `myconfiguration` you can specify your basic Wifi setting. Only "station mode" available now.
+- Currently at the `myconfiguration` you can specify the default basic settings.
 
 ```
     def __init__(self):
-        self.ssid = 'Your WIFI SSID'
-        self.passphrase = 'Your Passphrase'
+        self.configfile = "myconfig.cfg"
+        self.HTMLBasePath = "/html"
+        self.DefaultFile = "index.html"
+        self.Port = 80
+        
+        self.wifimode = 'AP'
+        self.ssid = 'ESP12F-WIFI'
+        self.passphrase = 'EspWifi1234'
+```
+But config file prefered, you can save one as `myconfig.cfg`:
+```
+{
+'wifi': {
+    'wifimode': 'station',
+    'ssid': 'Your Wifi SSID', 
+    'passphrase': 'Your passphrase'
+    }, 
+'server': { 
+    'port': 80, 
+    'htmlbasepath': '/html', 
+    'defaultfile': 'index.html'
+    }
+}
 ```
 
 References:

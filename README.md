@@ -10,4 +10,5 @@ This a free software and it is distributed under the terms of the GNU General Pu
 Installation:
 -------------
 
-You have to copy files from webserver folder to the root folder of ESP-12F micropython device.
+- You have to copy files from webserver folder to the root folder of ESP-12F micropython device.
+- Create a '''html''' folder on your device and copy/create html files you would like to serve

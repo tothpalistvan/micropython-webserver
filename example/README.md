@@ -1,6 +1,6 @@
 Install:
 --------
-Just copy the html folder to root of your ESP device. Dont forget to copy the webserver too.
+Just copy the html folder to root of your ESP device. Don't forget to copy the webserver too.
 
 
 Your py code:

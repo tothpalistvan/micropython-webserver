@@ -10,7 +10,7 @@ This a free software and it is distributed under the terms of the GNU General Pu
 Installation:
 -------------
 
-- If your ESP device haven't got micropython installed on it, first you have to install it.(https://micropython.org/download/esp8266/)
+- If your ESP device hasn't got micropython installed on it, first you have to install it.(https://micropython.org/download/esp8266/)
 - You have to copy files from webserver folder to the root folder of ESP-12F micropython device.
 - Create a '''html''' folder on your device and copy/create html files you would like to serve
 

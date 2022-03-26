@@ -11,7 +11,11 @@ myconnection = myWifiConnection( myconfig )
 
 # 3, Start Webserver and handle requests
 from mywebserver import myWebServer
-myserver = myWebServer( myconnection )
+myserver = myWebServer( myconnection, myconfig )
+
+import utime
+print("Current time: %04d-%02d-%02d %02d:%02d:%02d" % utime.localtime()[:6] )
+
 myserver.start()
 
 

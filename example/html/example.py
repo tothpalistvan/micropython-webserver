@@ -1,3 +1,5 @@
+from machine import Pin
+
 class myPYHTMLContent(object):
     
     def __init__(self, config, RequestData, path, pyfile):
@@ -9,11 +11,36 @@ class myPYHTMLContent(object):
         self.PYFile = pyfile
         self.set_initialdata()
         
+    def explode_post(self):
+        post = ''
+        retval = {}
+        if '_POST_' in self.RequestData.keys():
+            post = self.RequestData['_POST_']
+        if post != '':
+            plist = post.split('&')
+            for p in plist:
+                item = p.split('=')
+                if len(item)==2:
+                    retval[item[0]]=item[1]
+                else:
+                    retval[p]=p
+        return retval
+
     def set_initialdata(self):
-        self.somedata = 'Data'
-        return True
+        self.POST = self.explode_post()
         
     def doMCUThings(self):
+        LED = Pin(2, Pin.IN)
+        if 'LED' in self.POST.keys():
+            val = LED.value()
+            LED = Pin(2, Pin.OUT)
+            if self.POST['LED'] == "Turn+On":
+                LED.value(0)
+            elif self.POST['LED'] == "Turn+Off":
+                LED.value(1)
+            elif self.POST['LED'] == "Toggle":
+                LED.value((val+1) % 2)
+        self.LedState = "off" if LED.value() else "on"
         return True
     
     def generate(self):
@@ -29,4 +56,11 @@ class myPYHTMLContent(object):
         content+= "<p>Query: "+ query +"</p>"
         content+= "<p>Posted: "+self.RequestData['_POST_']+"</p>"
         content+= "<p>Cookies: "+cookies+"</p>"
+        content+= "<hr><p>Built-in LED state:" + self.LedState + "</p><BR>"
+
+        content+= "<form action='"+self.PYFile+".py.html' method='post'>"
+        content+= "  <input name='LED' type='submit' value='Turn On'>"
+        content+= "  <input name='LED' type='submit' value='Turn Off'>"
+        content+= "  <input name='LED' type='submit' value='Toggle'>"
+        content+= "</form>"
         return content

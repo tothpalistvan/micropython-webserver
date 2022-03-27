@@ -5,21 +5,29 @@ import uos,usocket as socket,sys,gc,time
 
 class myWebServer:
 
-    def __init__(self, connection, configuration):
-        self.configuration = configuration
+    def __init__(self, connection):
+        self.connection = connection
+        self.configuration = self.connection.get_configuration()
         self.HTMLBasePath = self.configuration.getHTMLBasePath()
         self.DefaultFile = self.configuration.getDefaultFile()
-        self.connection = connection
         self.HTTPRequestData = {}
         message = ''
         
         if not self.connection.isconnected():
-            if not self.connection.connect(True, 30):
+            if (not self.connection.connect(True, 30)) and (self.configuration.wifimode == "station"):
                 message = 'Error - No connection!'
         if self.connection.isconnected():
             message = self.connection.get_address()
         
         print("myWebServer init...", message)
+
+        self.mysock = socket.socket()
+       
+        addr = socket.getaddrinfo(self.connection.get_address(), self.connection.get_port())[0][-1]
+
+        self.mysock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.mysock.bind(addr)
+        self.mysock.listen(5)
 
     def explode_data(self, data):
         """Explode HTTP Request Data
@@ -72,38 +80,73 @@ class myWebServer:
         except OSError:
            return False
 
+    def receiveHTMLRequestHeader(self, connection):
+        retval = connection.readline()
+        while True:
+            row = connection.readline()
+            retval += row
+            if row == b"" or row == b"\r\n":
+                break
+        return retval
+    
+    def handlePYHTMLfile(self, filename, connection, ctype):
+        if self.fileExists(filename): 
+            if filename[-3:] == ".py":
+                cutpoint = filename.rfind("/")
+                path = filename[:cutpoint]
+                pyfile = filename[cutpoint+1:-3] 
+                sys.path.append(path)
+                mymodules = __import__(pyfile, globals(), locals(), [], 0)
+                pyhtml = mymodules.myPYHTMLContent(self.configuration, self.HTTPRequestData, path, pyfile)
+                sys.path.remove(path)
+                r = pyhtml.doMCUThings()
+                response = pyhtml.generate()
+                del sys.modules[pyfile]
+                del pyhtml
+                del mymodules
+            message = 'HTTP/1.1 200 OK\n'
+        else:       
+            message = 'HTTP/1.1 404 Not Found\n'
+            response = 'HTTP 404 - File not found!'
+        gc.collect()
+ #       print(gc.mem_free())
+
+        connection.write(message.encode())
+        connection.write(('Content-Type: '+ctype+'\n').encode())
+        connection.write( ('Content-Length: {}\n').format(len(response.encode())).encode())
+        connection.write('Connection: close\n\n'.encode())
+        connection.write(response.encode())
+        
+    # can it serve 32KB+ textfile??
+    def serve_file(self, filename, connection, ctype):
+        if self.fileExists(filename): 
+            f = open( filename )
+            response = f.read()
+            f.close()                   
+            message = 'HTTP/1.1 200 OK\n'
+        else:       
+            message = 'HTTP/1.1 404 Not Found\n'
+            response = 'HTTP 404 - File not found!'
+        gc.collect()
+#        print(gc.mem_free())
+
+        connection.write(message.encode())
+        connection.write(('Content-Type: '+ctype+'\n').encode())
+        connection.write( ('Content-Length: {}\n').format(len(response.encode())).encode())
+        connection.write('Connection: close\n\n'.encode())
+        connection.write(response.encode())
     
     def start(self):       
-#        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.mysock = socket.socket()
-        
-        ai = socket.getaddrinfo(self.connection.get_address(), self.connection.get_port())
-        addr = ai[0][-1]
-
-        self.mysock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.mysock.bind(addr)
-        self.mysock.listen(5)
         while True:
-          res = self.mysock.accept()
-          conn = res[0]
-          client_addr = res[1]
-
-          req = conn.readline()
-          retval = req
-          while True:
-              h = conn.readline()
-              retval += h
-              if h == b"" or h == b"\r\n":
-                    break
-
-          request = retval
-          
-          #print(request)
+          conn = self.mysock.accept()[0]
+          request = self.receiveHTMLRequestHeader(conn)
+         
           if request:
               status = "ok"
               response = ""
               message = ""
               gc.collect()
+              print(gc.mem_free())
               uri = self.explode_data(request)
               if 'Method' in self.HTTPRequestData.keys() and status=="ok":
                   if self.HTTPRequestData['Method'] not in ['GET','POST']:
@@ -111,21 +154,18 @@ class myWebServer:
                       response = "405 Method Not Allowed"
                       message = "HTTP/1.1 405 Method Not Allowed\n"
                   if self.HTTPRequestData['Method']=='POST':
-                      #receive post data Content-Length
                       retval = conn.read(eval(self.HTTPRequestData['Content-Length']))
                       self.HTTPRequestData['_POST_'] = retval.decode()
               else:
-                      status = "error"
-                      response = "405 Method Not Allowed"
-                      message = "HTTP/1.1 405 Method Not Allowed\n"
+                  status = "error"
+                  response = "405 Method Not Allowed"
+                  message = "HTTP/1.1 405 Method Not Allowed\n"
 
               if 'HTTPver' in self.HTTPRequestData.keys() and status=="ok":
                   if self.HTTPRequestData['HTTPver'] not in ['HTTP/1.0','HTTP/1.1']:
                       status = "error"
                       response = "505 HTTP Version Not Supported"
                       message = "HTTP/1.1 505 HTTP Version Not Supported\n"
-
-#              print(len(request),len(retval),self.HTTPRequestData)
 
               if status=="ok":      
                 accept = self.HTTPRequestData['Accept'].split(',')
@@ -147,44 +187,15 @@ class myWebServer:
                             filename = self.HTMLBasePath + refer[1].split('?')[0][:cutpoint] + uri
 
                 if filename[-8:] == ".py.html":
-                  filename = filename[:-5]
-                if self.fileExists(filename): 
-                  if filename[-3:] == ".py":
-                    #print( self.HTTPRequestData )
-                    cutpoint = filename.rfind("/")
-                    path = filename[:cutpoint]
-                    pyfile = filename[cutpoint+1:-3] 
-                    sys.path.append(path)
-                    mymodules = __import__(pyfile, globals(), locals(), [], 0)
-#                    print(mymodules)
-                    pyhtml = mymodules.myPYHTMLContent(self.configuration, self.HTTPRequestData, path, pyfile)
-                    sys.path.remove(path)
-                    r = pyhtml.doMCUThings()
-                    #if r==False:
-                    response = pyhtml.generate()
-                    del sys.modules[pyfile]
-                    del pyhtml
-                    del mymodules
-                    gc.collect()
-                  else:
-                    f = open( filename )
-                    response = f.read()
-                    f.close()
-
-                  #print(gc.mem_free())
-                    
-                  message = 'HTTP/1.1 200 OK\n'
-                else:       
-                  message = 'HTTP/1.1 404 Not Found\n'
-                  response = 'HTTP 404 - File not found!'
-
-              conn.write(message.encode())
-              if status=="ok":
-                  conn.write(('Content-Type: '+accept[0]+'\n').encode())
+                    self.handlePYHTMLfile(filename[:-5], conn, accept[0])
+                else:
+                    self.serve_file(filename, conn, accept[0])
               else:
-                  conn.write('Content-Type: text/html\n'.encode())
-              conn.write( ('Content-Length: {}\n').format(len(response.encode())).encode())
-              conn.write('Connection: close\n\n'.encode())
-              conn.write(response.encode())
+                conn.write(message.encode())
+                conn.write('Content-Type: text/html\n'.encode())
+                conn.write( ('Content-Length: {}\n').format(len(response.encode())).encode())
+                conn.write('Connection: close\n\n'.encode())
+                conn.write(response.encode())
                   
           conn.close()
+

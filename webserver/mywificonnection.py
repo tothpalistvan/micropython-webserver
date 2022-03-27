@@ -21,6 +21,9 @@ class myWifiConnection:
     def get_port(self):
         return self.port
 
+    def get_configuration(self):
+        return self.config
+
     def isconnected(self):
         if hasattr(self,'connection'):
             return self.connection.isconnected()

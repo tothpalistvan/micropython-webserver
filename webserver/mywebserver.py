@@ -82,7 +82,7 @@ class myWebServer:
         except OSError:
            return False
 
-    def receiveHTMLRequestHeader(self, connection):
+    def receiveHTTPRequestHeader(self, connection):
         retval = connection.readline()
         while True:
             row = connection.readline()
@@ -90,6 +90,12 @@ class myWebServer:
             if row == b"" or row == b"\r\n":
                 break
         return retval
+    
+    def sendHTTPAnswerHeader(self, connection, message, ctype, csize):
+        connection.write(message.encode())
+        connection.write(('Content-Type: '+ctype+'\n').encode())
+        connection.write( ('Content-Length: {}\n').format(csize).encode())
+        connection.write('Connection: close\n\n'.encode())
     
     def handlePYHTMLfile(self, filename, connection, ctype):
         if self.fileExists(filename): 
@@ -111,45 +117,33 @@ class myWebServer:
             message = 'HTTP/1.1 404 Not Found\n'
             response = 'HTTP 404 - File not found!'
         gc.collect()
- #       print(gc.mem_free())
 
-        connection.write(message.encode())
-        connection.write(('Content-Type: '+ctype+'\n').encode())
-        connection.write( ('Content-Length: {}\n').format(len(response.encode())).encode())
-        connection.write('Connection: close\n\n'.encode())
+        self.sendHTTPAnswerHeader(connection, message, ctype, len(response.encode()))
         connection.write(response.encode())
         
-    # can it serve 32KB+ textfile??
     # can it serve bin file??
     def serve_file(self, filename, connection, ctype):
         fsize=self.fileExists(filename)
         if fsize: 
-            message = 'HTTP/1.1 200 OK\n'
-        else:       
-            message = 'HTTP/1.1 404 Not Found\n'
-            response = 'HTTP 404 - File not found!'
+            self.sendHTTPAnswerHeader(connection, 'HTTP/1.1 200 OK\n', ctype, fsize)
 
-        connection.write(message.encode())
-        connection.write(('Content-Type: '+ctype+'\n').encode())
-        if fsize:
-            connection.write( ('Content-Length: {}\n').format(fsize).encode())
-        connection.write('Connection: close\n\n'.encode())
-        if fsize: 
             f = open( filename )
-            parts = fsize // self.filepartsize
-            for i in range(0,parts):
+            for i in range(0,fsize // self.filepartsize):
                 response = f.read(self.filepartsize)
                 connection.write(response.encode())
             response = f.read(fsize % self.filepartsize)
             connection.write(response.encode())
-            f.close()                   
+            f.close()
+        else:       
+            response = 'HTTP 404 - File not found!'
+            self.sendHTTPAnswerHeader(connection, 'HTTP/1.1 404 Not Found\n', 'text/html', len(response.encode()))
+            connection.write(response.encode())          
 #        gc.collect()
-#        print(gc.mem_free())
 
     def start(self):       
         while True:
           conn = self.mysock.accept()[0]
-          request = self.receiveHTMLRequestHeader(conn)
+          request = self.receiveHTTPRequestHeader(conn)
          
           if request:
               status = "ok"
@@ -206,10 +200,7 @@ class myWebServer:
                 else:
                     self.serve_file(filename, conn, accept[0])
               else:
-                conn.write(message.encode())
-                conn.write('Content-Type: text/html\n'.encode())
-                conn.write( ('Content-Length: {}\n').format(len(response.encode())).encode())
-                conn.write('Connection: close\n\n'.encode())
+                self.sendHTTPAnswerHeader(conn, message, 'text/html', len(response.encode()))
                 conn.write(response.encode())
                   
           conn.close()

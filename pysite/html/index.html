@@ -1,0 +1,18 @@
+<html>
+<body>
+<h1>HELLO</h1>
+<div>
+<form action="pysite.py.html" method="post">
+  <label for="fname">First name:</label><br>
+  <input type="text" id="fname" name="fname" value="John"><br>
+  <label for="lname">Last name:</label><br>
+  <input type="text" id="lname" name="lname" value="Doe">
+  <input type="submit">
+</form>
+<script>
+document.cookie = "defaultusername=John Doe";
+document.cookie = "someothercookie=Something"; 
+</script>
+</div>
+</body>
+</html>

@@ -1,14 +1,16 @@
+# example.py - Example for micropython-webserver - free sotware under GNU GPL
+# Author: (c)2022 Tóthpál István <istvan@tothpal.eu>
 from machine import Pin
 
 class myPYHTMLContent(object):
     
-    def __init__(self, config, RequestData, path, pyfile):
-        self.configuration = config
-        self.RequestData = RequestData
-        self.Path = path
-        if path[-1]!="/":
+    def __init__(self, parent):
+        self.configuration = parent.configuration
+        self.RequestData = parent.HTTPRequestData
+        self.Path = parent.path
+        if self.Path[-1]!="/":
             self.Path += "/"
-        self.PYFile = pyfile
+        self.PYFile = parent.pyfile
         self.set_initialdata()
         
     def explode_post(self):

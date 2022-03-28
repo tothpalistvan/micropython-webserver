@@ -1,6 +1,3 @@
-# mywificonnection.py - micropython-webserver - free sotware under GNU GPL
-# Author: (c)2022 Tóthpál István <istvan@tothpal.eu>
-
 import network
 import time
 
@@ -23,6 +20,21 @@ class myWifiConnection:
 
     def get_configuration(self):
         return self.config
+
+    def scan(self):
+        if hasattr(self,'connection'):
+            return self.connection.scan()
+        return False      
+
+    def get_netmask(self):
+        if hasattr(self,'connection'):
+            return self.connection.ifconfig()[1]
+        return False      
+
+    def get_nameservers(self):
+        if hasattr(self,'connection'):
+            return self.connection.ifconfig()[2:3]
+        return False      
 
     def isconnected(self):
         if hasattr(self,'connection'):
@@ -47,4 +59,4 @@ class myWifiConnection:
             lasttime = time.time()
             
         return self.connection.isconnected()
-      
+        

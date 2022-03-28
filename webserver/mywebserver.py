@@ -15,7 +15,7 @@ class myWebServer:
         message = ''
         
         if not self.connection.isconnected():
-            if (not self.connection.connect(True, 30)) and (self.configuration.wifimode == "station"):
+            if (not self.connection.connect(True, 300)) and (self.configuration.wifimode == "station"):
                 message = 'Error - No connection!'
         if self.connection.isconnected():
             message = self.connection.get_address()
@@ -52,10 +52,8 @@ class myWebServer:
                     i -= 1
         self.HTTPRequestData = result
 
-        poststart = str(data).rfind("\\r\\n")
-        if poststart+4 < len(str(data)):
-            self.HTTPRequestData['_POST_'] = str(data)[poststart+4:-1]
-
+        self.HTTPRequestData['_POST_'] = ''
+        
         if 'URI' in self.HTTPRequestData.keys():
             uri = self.HTTPRequestData['URI'].split('?')
             if isinstance(uri,list):
@@ -70,8 +68,6 @@ class myWebServer:
 
     def fileExists(self,filename):
         try:
-#            uos.stat(filename)
-#            return True;
             return uos.stat(filename)[6]
         except OSError:
             return False
@@ -101,17 +97,19 @@ class myWebServer:
         if self.fileExists(filename): 
             if filename[-3:] == ".py":
                 cutpoint = filename.rfind("/")
-                path = filename[:cutpoint]
-                pyfile = filename[cutpoint+1:-3] 
-                sys.path.append(path)
-                mymodules = __import__(pyfile, globals(), locals(), [], 0)
-                pyhtml = mymodules.myPYHTMLContent(self.configuration, self.HTTPRequestData, path, pyfile)
-                sys.path.remove(path)
+                self.path = filename[:cutpoint]
+                self.pyfile = filename[cutpoint+1:-3] 
+                sys.path.append(self.path)
+                mymodules = __import__(self.pyfile, globals(), locals(), [], 0)
+                pyhtml = mymodules.myPYHTMLContent( self )
+                sys.path.remove(self.path)
                 r = pyhtml.doMCUThings()
                 response = pyhtml.generate()
-                del sys.modules[pyfile]
+                del sys.modules[self.pyfile]
                 del pyhtml
                 del mymodules
+                del self.path
+                del self.pyfile
             message = 'HTTP/1.1 200 OK\n'
         else:       
             message = 'HTTP/1.1 404 Not Found\n'
@@ -121,7 +119,7 @@ class myWebServer:
         self.sendHTTPAnswerHeader(connection, message, ctype, len(response.encode()))
         connection.write(response.encode())
         
-    # can it serve bin file??
+    # can it serve bin file?? - worked with jpg
     def serve_file(self, filename, connection, ctype):
         fsize=self.fileExists(filename)
         if fsize: 

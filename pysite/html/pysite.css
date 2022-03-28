@@ -1,0 +1,13 @@
+#inner_page {
+    width:1000px;
+    text-align:left;
+}
+
+#left {
+    width:200px;
+    display:table-cell;
+}
+
+#content {
+    display:table-cell;
+}

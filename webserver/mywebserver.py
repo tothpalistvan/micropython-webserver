@@ -10,6 +10,7 @@ class myWebServer:
         self.configuration = self.connection.get_configuration()
         self.HTMLBasePath = self.configuration.getHTMLBasePath()
         self.DefaultFile = self.configuration.getDefaultFile()
+        self.filepartsize = 1024
         self.HTTPRequestData = {}
         message = ''
         
@@ -69,8 +70,9 @@ class myWebServer:
 
     def fileExists(self,filename):
         try:
-            uos.stat(filename)
-            return True;
+#            uos.stat(filename)
+#            return True;
+            return uos.stat(filename)[6]
         except OSError:
             return False
 
@@ -118,24 +120,32 @@ class myWebServer:
         connection.write(response.encode())
         
     # can it serve 32KB+ textfile??
+    # can it serve bin file??
     def serve_file(self, filename, connection, ctype):
-        if self.fileExists(filename): 
-            f = open( filename )
-            response = f.read()
-            f.close()                   
+        fsize=self.fileExists(filename)
+        if fsize: 
             message = 'HTTP/1.1 200 OK\n'
         else:       
             message = 'HTTP/1.1 404 Not Found\n'
             response = 'HTTP 404 - File not found!'
-        gc.collect()
-#        print(gc.mem_free())
 
         connection.write(message.encode())
         connection.write(('Content-Type: '+ctype+'\n').encode())
-        connection.write( ('Content-Length: {}\n').format(len(response.encode())).encode())
+        if fsize:
+            connection.write( ('Content-Length: {}\n').format(fsize).encode())
         connection.write('Connection: close\n\n'.encode())
-        connection.write(response.encode())
-    
+        if fsize: 
+            f = open( filename )
+            parts = fsize // self.filepartsize
+            for i in range(0,parts):
+                response = f.read(self.filepartsize)
+                connection.write(response.encode())
+            response = f.read(fsize % self.filepartsize)
+            connection.write(response.encode())
+            f.close()                   
+#        gc.collect()
+#        print(gc.mem_free())
+
     def start(self):       
         while True:
           conn = self.mysock.accept()[0]
@@ -146,7 +156,7 @@ class myWebServer:
               response = ""
               message = ""
               gc.collect()
-              print(gc.mem_free())
+#              print(gc.mem_free())
               uri = self.explode_data(request)
               if 'Method' in self.HTTPRequestData.keys() and status=="ok":
                   if self.HTTPRequestData['Method'] not in ['GET','POST']:
@@ -171,7 +181,6 @@ class myWebServer:
                 accept = self.HTTPRequestData['Accept'].split(',')
         
                 filename = self.HTMLBasePath + uri
-              
                 if self.isdir(filename):
                   if filename[-1] != "/":
                       filename += "/"
@@ -180,11 +189,17 @@ class myWebServer:
                   if 'Referer' in self.HTTPRequestData.keys():
                     refer = self.HTTPRequestData['Referer'].split(self.HTTPRequestData['Host'])
                     if not self.fileExists(filename) and len(refer)==2:
-                        if self.isdir(refer[1].split('?')[0]):
-                            filename = self.HTMLBasePath + refer[1].split('?')[0] + uri
+                        if self.isdir(self.HTMLBasePath + refer[1].split('?')[0]):
+                            p = refer[1].split('?')[0]
+                            if p[-1:]=="/" and uri[0]=="/":
+                                p=p[:-1]
+                            filename = self.HTMLBasePath + p + uri
                         else:
                             cutpoint = refer[1].split('?')[0].rfind("/")
-                            filename = self.HTMLBasePath + refer[1].split('?')[0][:cutpoint] + uri
+                            p = refer[1].split('?')[0][:cutpoint]
+                            if p[-1:]=="/" and uri[0]=="/":
+                                p=p[:-1]
+                            filename = self.HTMLBasePath + p + uri
 
                 if filename[-8:] == ".py.html":
                     self.handlePYHTMLfile(filename[:-5], conn, accept[0])
@@ -198,4 +213,3 @@ class myWebServer:
                 conn.write(response.encode())
                   
           conn.close()
-

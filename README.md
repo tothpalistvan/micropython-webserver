@@ -1,5 +1,4 @@
-# micropython-webserver
-micropython-webserver for ESP-12F
+# micropython-webserver for ESP-12F
 A simple HTTP server on your MCU, designed to use in ESP-12F Wifi module, but it may work with antoher micropython MCU-s (e.g ESP32).
 
 There is an opportunity to run "server side script" to execute e.g. MCU commands in micropython. There is an example here how to do that. I'm creating another example called `pysite`.

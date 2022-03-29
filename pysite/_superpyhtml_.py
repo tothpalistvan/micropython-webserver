@@ -18,8 +18,8 @@ class SuperPYHTML(object):
         if self.Path[-1]!="/":
             self.Path += "/"
         self.PYFile = parent.pyfile
-        self.GET = self.explode_query()
-        self.POST = self.explode_post()
+        self.GET = self.explode_RequestData( 'URLQuery', '=', '&' )
+        self.POST = self.explode_RequestData( '_POST_', '=', '&' )
         self.Method = 'GET'
         if 'Method' in self.RequestData.keys():
             self.Method = self.RequestData['Method']
@@ -30,43 +30,25 @@ class SuperPYHTML(object):
         if self.Method == 'POST':
             sentdata = self.POST.copy()
 
-        self.ExchangeData = {
-            "initstr" : "<h1>TITLE</h1>",
-            "endstr" : "",
-            }
+        self.ExchangeData = {}
         self.ExchangeData.update(sentdata)
         self.data = self.PYFile
 
-    def explode_query(self):
-        query = ''
+    def explode_RequestData(self, field, equationseparator, itemseparator):
+        data = ''
+        if field in self.RequestData.keys():
+            data = self.RequestData[field]
         retval = {}
-        if 'URLQuery' in self.RequestData.keys():
-            query = self.RequestData['URLQuery']
-        if query !='':
-            qlist = query.split('&')
-            for q in qlist:
-                item = q.split('=')
+        if data !='':
+            dlist = data.split(itemseparator)
+            for d in dlist:
+                item = d.split(equationseparator)
                 if len(item)==2:
                     retval[item[0]]=item[1]
                 else:
-                    retval[q]=q
+                    retval[d]=d
         return retval
-
-    def explode_post(self):
-        post = ''
-        retval = {}
-        if '_POST_' in self.RequestData.keys():
-            post = self.RequestData['_POST_']
-        if post != '':
-            plist = post.split('&')
-            for p in plist:
-                item = p.split('=')
-                if len(item)==2:
-                    retval[item[0]]=item[1]
-                else:
-                    retval[p]=p
-        return retval
-    
+            
     def doMCUThings(self):
         return True
     

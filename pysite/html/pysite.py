@@ -33,15 +33,10 @@ class myPYHTMLContent(SuperPYHTML):
         self.Menus[3]= { 'id':3, 'title':'I2C', 'targeturl':self.PYFile+'.py.html?menu=3' }
         self.selectedmenu = 0
         if 'menu' in self.GET.keys():
-            #if self.GET['menu'].isnumeric():
                 self.selectedmenu = int(self.GET['menu'])
-            #else:
-            #    self.selectedmenu = -1
-                
         query = ''
         if 'URLQuery' in self.RequestData.keys():
             query = self.RequestData['URLQuery']
-        self.data = "ez valami"
         cookies = ''
         if 'Cookie' in self.RequestData.keys():
             cookies = self.RequestData['Cookie']
@@ -68,10 +63,20 @@ class myPYHTMLContent(SuperPYHTML):
                 content+= "<p>Current time: %04d-%02d-%02d %02d:%02d:%02d</p>" % time.localtime()[:6]
                 content+= self.configuration.tohtml()
             elif self.Menus[self.selectedmenu]['title'] == 'Wifi':
-                content = "<h1>WIFI</h1>"
-                content+= "<p>IP: "+ self.connection.get_address() +"</p>"
-                content+= "<p>Netmask: "+ self.connection.get_netmask() +"</p>"
-                content+= "<p>DNS: {}</p>".format(self.connection.get_nameservers())
+                content = '<h1>WIFI</h1>'
+                content+= '<p>IP: %s</p>' % self.connection.get_address()
+                content+= '<p>Netmask: %s</p>' % self.connection.get_netmask()
+                content+= '<p>DNS: %s</p>' % ', '.join(self.connection.get_nameservers())
+                content+= '<form action="%s.py.html?menu=%d" method="post">' % (self.PYFile,self.selectedmenu)
+                content+= '  <p><label for="wifimode">Wifi mode: </label><select id="wifimode" name="wifimode">'
+                content+= '    <option value="AP"%s>AP</option>' % (' selected=1' if self.configuration.wifimode=='AP' else '')
+                content+= '    <option value="station"%s>Station</option>' % (' selected=1' if self.configuration.wifimode=='station' else '')
+                content+= '  </select></p>'
+                content+= '  <p><label for="ssid">SSID: </label><input type="text" id="ssid" name="ssid" value="%s"></p>' % self.configuration.ssid
+                content+= '  <p><label for="psk">PSK: </label><input type="text" id="psk" name="psk" value="%s"></p>' % self.configuration.passphrase
+                content+= '  <input name="WIFI" type="submit" value="Save">'
+                content+= '  <input name="WIFI" type="submit" value="Scan">'
+                content+= '</form><BR>'
             elif self.Menus[self.selectedmenu]['title'] == 'I2C':
                 content = "<h1>I2C</h1>"
         else:
@@ -108,9 +113,20 @@ class myPYHTMLContent(SuperPYHTML):
                     self.ExchangeData["MCUThings"]+= "  <input name='LED' type='submit' value='Toggle'>"
                     self.ExchangeData["MCUThings"]+= "</form><BR>"
                 elif self.Menus[self.selectedmenu]['title'] == 'Wifi':
-                    self.ExchangeData["MCUThings"] = "{}".format(self.connection.scan())
+                    if 'WIFI' in self.POST.keys():
+                        if self.POST['WIFI'] == "Scan":
+                            self.ExchangeData["MCUThings"]+= "<hr>Scan result:"
+                            aps = self.connection.scan()
+                            for item in aps:
+                                mac = ":".join([hex(byte)[2:] for byte in item[1]])
+                                self.ExchangeData["MCUThings"] += "<p>%s : %d</p>" % (mac if item[5] else item[0].decode(),item[3])
+                        if self.POST['WIFI'] == "Save":
+                            self.configuration.wifimode=self.POST['wifimode']
+                            self.configuration.ssid=self.POST['ssid']
+                            self.configuration.passphrase=self.POST['psk']
+                            self.configuration.saveconfig()
+                            self.ExchangeData["MCUThings"]+= 'Configuration saved... Please, restart server manualy'
                 elif self.Menus[self.selectedmenu]['title'] == 'I2C':
                     i2c = I2C( scl=Pin(5),sda=Pin(4),freq=100000 )
                     self.ExchangeData["MCUThings"] = "<hr><p>I2C scan: {}</p>".format(i2c.scan())
-
         return True

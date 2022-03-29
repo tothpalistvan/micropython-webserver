@@ -1,6 +1,5 @@
 # mywebserver.py - micropython-webserver - free sotware under GNU GPL
 # Author: (c)2022 Tóthpál István <istvan@tothpal.eu>
-
 import uos,usocket as socket,sys,gc,time
 
 class myWebServer:
@@ -31,8 +30,6 @@ class myWebServer:
         self.mysock.listen(5)
 
     def explode_data(self, data):
-        """Explode HTTP Request Data
-           Returns URI path + URIFile"""
         result = {}
         rows =  str(data).split("'")[1].split("\\r\\n")
         i = -1
@@ -114,12 +111,12 @@ class myWebServer:
         else:       
             message = 'HTTP/1.1 404 Not Found\n'
             response = 'HTTP 404 - File not found!'
-        gc.collect()
 
         self.sendHTTPAnswerHeader(connection, message, ctype, len(response.encode()))
         connection.write(response.encode())
+        del response
+        gc.collect()
         
-    # can it serve bin file?? - worked with jpg
     def serve_file(self, filename, connection, ctype):
         fsize=self.fileExists(filename)
         if fsize: 
@@ -135,8 +132,9 @@ class myWebServer:
         else:       
             response = 'HTTP 404 - File not found!'
             self.sendHTTPAnswerHeader(connection, 'HTTP/1.1 404 Not Found\n', 'text/html', len(response.encode()))
-            connection.write(response.encode())          
-#        gc.collect()
+            connection.write(response.encode())
+        del response
+        gc.collect()
 
     def start(self):       
         while True:
@@ -148,7 +146,6 @@ class myWebServer:
               response = ""
               message = ""
               gc.collect()
-#              print(gc.mem_free())
               uri = self.explode_data(request)
               if 'Method' in self.HTTPRequestData.keys() and status=="ok":
                   if self.HTTPRequestData['Method'] not in ['GET','POST']:
@@ -169,8 +166,11 @@ class myWebServer:
                       response = "505 HTTP Version Not Supported"
                       message = "HTTP/1.1 505 HTTP Version Not Supported\n"
 
-              if status=="ok":      
-                accept = self.HTTPRequestData['Accept'].split(',')
+              if status=="ok":
+                if 'Accept' in self.HTTPRequestData.keys():
+                    ctype = self.HTTPRequestData['Accept'].split(',')[0]
+                else:
+                    ctype = ['text/html']
         
                 filename = self.HTMLBasePath + uri
                 if self.isdir(filename):
@@ -194,9 +194,9 @@ class myWebServer:
                             filename = self.HTMLBasePath + p + uri
 
                 if filename[-8:] == ".py.html":
-                    self.handlePYHTMLfile(filename[:-5], conn, accept[0])
+                    self.handlePYHTMLfile(filename[:-5], conn, ctype)
                 else:
-                    self.serve_file(filename, conn, accept[0])
+                    self.serve_file(filename, conn, ctype)
               else:
                 self.sendHTTPAnswerHeader(conn, message, 'text/html', len(response.encode()))
                 conn.write(response.encode())

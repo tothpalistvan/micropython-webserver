@@ -5,8 +5,19 @@ Just copy the html folder to root of your ESP device. Don't forget to copy the w
 
 Your py code:
 -------------
-As you can see in example.py you have to create an object on the predefined name: ''''myPYHTMLContent'''
+As you can see in example.py you have to create an object on the predefined name: `myPYHTMLContent`
 
-You have to add/implement methods: '''__init__(self, config, RequestData, path, pyfile); doMCUThings(self); generate(self)'''
+You have to add/implement methods: 
+```
+class myPYHTMLContent(object):
+  def __init__(self, server):
+  '''Init'''
+  
+  def doMCUThings(self):
+  '''Do something in MCU - e.g. change LED state'''
+  
+  def generate(self):
+  '''Generate answer/result HTML'''
+```
 
 Don't forget that basicly your device has only 32KB RAM to use, so do not create to big files.

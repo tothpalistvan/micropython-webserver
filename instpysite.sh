@@ -1,7 +1,13 @@
-ampy --port /dev/ttyUSB0 put pysite/_superpyhtml_.py _superpyhtml_.py
-ampy --port /dev/ttyUSB0 mkdir 'html'
-for x in $(ls pysite/html); 
+PORT=$1
+if [ 6 -gt ${#PORT} ] || [ ${PORT::5} != '/dev/' ]
+then
+  PORT='/dev/ttyUSB0';
+fi
+
+ampy --port $PORT put pysite/_superpyhtml_.py _superpyhtml_.py
+ampy --port $PORT mkdir 'html'
+for FILE in $(ls pysite/html); 
 do 
-	echo $x;
-	ampy --port /dev/ttyUSB0 put 'pysite/html/'$x 'html/'$x
+	echo $FILE;
+	ampy --port $PORT put 'pysite/html/'$FILE 'html/'$FILE
 done

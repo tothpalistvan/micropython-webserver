@@ -2,7 +2,9 @@ About:
 ------
 This is an example mPy based website with some MCU based action. 
 
-In this example you will able to set your webservers configuration...(This is under construction)
+In this example you able to save your webservers configuration...(You can find it in Wifi page)
+
+(I think I reached the memory limit, so the status menu and/or other menus maybe implemented in separate file.)
 
 Install:
 --------

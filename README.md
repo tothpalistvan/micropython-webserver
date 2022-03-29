@@ -1,5 +1,7 @@
 # micropython-webserver
 micropython-webserver for ESP-12F
+A simple HTTP server on your MCU, designed to use in ESP-12F Wifi module, but it may work with antoher micropython MCU-s (e.g ESP32).
+There is an opportunity to run 'server side script' to execute e.g. MCU commands in micropython.
 
 This project is created because I would like to learn a bit programming in micropython on ESP-12F (8266EX) but I think you can use it in your home hobby project.
 
@@ -12,7 +14,8 @@ Installation:
 
 - If your ESP device hasn't got micropython installed on it, first you have to install it.(https://micropython.org/download/esp8266/)
 - You have to copy files from webserver folder to the root folder of ESP-12F micropython device.
-- Create a '''html''' folder on your device and copy/create html files you would like to serve
+- Create a `html` folder on your device and copy/create html files you would like to serve
+- If you have installed `adafruit-ampy` you can use install shell scripts under Linux (e.g. `instserver.sh /dev/ttyUSB0`)
 
 Configuration:
 --------------

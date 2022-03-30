@@ -30,10 +30,10 @@ class SuperPYHTML(object):
         for key in self.Menus:
             mi=self.Menus[key]
             mh += "<p>"
-            if self.selectedmenu == mi['id']:
+            if self.selm == mi['id']:
                 mh += "<b>"
             mh += "<a href='" + mi['targeturl'] + "'>" + mi['title'] + "</a>"
-            if self.selectedmenu == mi['id']:
+            if self.selm == mi['id']:
                 mh += "</b>"
             mh += "</p>"
         return mh
@@ -48,15 +48,15 @@ class SuperPYHTML(object):
         self.XD.update(sentdata)
         self.data = self.PYFile
 
-    def explode_RD(self, field, equationseparator, itemseparator):
+    def explode_RD(self, f, eqsep, isep):
         data = ''
-        if field in self.RD.keys():
-            data = self.RD[field]
+        if f in self.RD.keys():
+            data = self.RD[f]
         r = {}
         if data !='':
-            dlist = data.split(itemseparator)
+            dlist = data.split(isep)
             for d in dlist:
-                item = d.split(equationseparator)
+                item = d.split(eqsep)
                 if len(item)==2:
                     r[item[0]]=item[1]
                 else:

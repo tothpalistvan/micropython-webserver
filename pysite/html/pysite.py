@@ -3,7 +3,6 @@
 from _superpyhtml_ import SuperPYHTML,MCUSERVER
 
 if MCUSERVER:
-    from machine import Pin,I2C,RTC
     import utime as time
 else:
     import time
@@ -23,7 +22,7 @@ class myPYHTMLContent(SuperPYHTML):
             except:
                 s = 0
                 pass
-        self.selectedmenu = s
+        self.selm = s
         query = ''
         if 'URLQuery' in self.RD.keys():
             query = self.RD['URLQuery']
@@ -31,8 +30,8 @@ class myPYHTMLContent(SuperPYHTML):
         if 'Cookie' in self.RD.keys():
             cookies = self.RD['Cookie']
 
-        if self.selectedmenu>=0 and self.selectedmenu<len(self.Menus):
-            title = self.Menus[self.selectedmenu]['title']
+        if self.selm>=0 and self.selm<len(self.Menus):
+            title = self.Menus[self.selm]['title']
             if title == 'Welcome':
                 c = "<h1>Welcome"
                 if self.POST != {}:
@@ -68,11 +67,12 @@ class myPYHTMLContent(SuperPYHTML):
 
     def doMCUThings(self):
         self.XD["MCUThings"]=""
-        title = self.Menus[self.selectedmenu]['title']
+        title = self.Menus[self.selm]['title']
         
-        if self.selectedmenu>=0 and self.selectedmenu<len(self.Menus):
+        if self.selm>=0 and self.selm<len(self.Menus):
             if MCUSERVER:
                 if title == 'Welcome':
+                    from machine import Pin
                     LED = Pin(2, Pin.IN)
                     if 'LED' in self.POST.keys():
                         val = LED.value()
@@ -91,6 +91,7 @@ class myPYHTMLContent(SuperPYHTML):
                     c+= "  <input name='LED' type='submit' value='Toggle'>"
                     self.XD["MCUThings"]+= c+"</form><BR>"
                 elif title == 'Status':
+                    from machine import RTC
                     if 'STATUS' in self.POST.keys():
                         if self.POST['STATUS'] == "Set+Time":
                             try:
@@ -101,7 +102,7 @@ class myPYHTMLContent(SuperPYHTML):
                                 pass
                     t = time.localtime()[:6]
                     c = "<p>Current time: %04d-%02d-%02d %02d:%02d:%02d</p>" % t
-                    c+= '<form action="%s.py.html?menu=%d" method="post">' % (self.PYFile,self.selectedmenu)
+                    c+= '<form action="%s.py.html?menu=%d" method="post">' % (self.PYFile,self.selm)
                     c+= '  <p><label for="date">date: </label><input type="text" id="date" name="date" value="%04d-%02d-%02d"></p>' % (t[:3])
                     c+= '  <p><label for="time">time: </label><input type="text" id="time" name="time" value="%02d:%02d:%02d"></p>' % (t[3:])
                     c+= '  <input name="STATUS" type="submit" value="Set Time">'
@@ -125,7 +126,7 @@ class myPYHTMLContent(SuperPYHTML):
                             self.cfg.passphrase=self.POST['psk']
                             self.cfg.saveconfig()
                             self.XD["MCUThings"]+= 'Configuration saved... Please, restart server manualy'
-                    c = '<form action="%s.py.html?menu=%d" method="post">' % (self.PYFile,self.selectedmenu)
+                    c = '<form action="%s.py.html?menu=%d" method="post">' % (self.PYFile,self.selm)
                     c+= '  <p><label for="wifimode">Wifi mode: </label><select id="wifimode" name="wifimode">'
                     c+= '    <option value="AP"%s>AP</option>' % (' selected=1' if self.cfg.wifimode=='AP' else '')
                     c+= '    <option value="station"%s>Station</option>' % (' selected=1' if self.cfg.wifimode=='station' else '')
@@ -137,6 +138,7 @@ class myPYHTMLContent(SuperPYHTML):
                     c+= '</form><BR>'
                     self.XD["MCUThings"]= c+self.XD["MCUThings"]
                 elif title == 'I2C':
+                    from machine import Pin,I2C
                     i2c = I2C( scl=Pin(5),sda=Pin(4),freq=100000 )
                     self.XD["MCUThings"] = "<hr><p>I2C scan: {}</p>".format(i2c.scan())
         return True

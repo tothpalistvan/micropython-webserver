@@ -91,23 +91,38 @@ class myWebServer:
         connection.write('Connection: close\n\n'.encode())
     
     def handlePYHTMLfile(self, filename, connection, ctype):
+        st = ''
         if self.fileExists(filename): 
             if filename[-3:] == ".py":
                 cutpoint = filename.rfind("/")
                 self.path = filename[:cutpoint]
                 self.pyfile = filename[cutpoint+1:-3] 
                 sys.path.append(self.path)
-                mymodules = __import__(self.pyfile, globals(), locals(), [], 0)
-                pyhtml = mymodules.myPYHTMLContent( self )
+                try:
+                    mymodules = __import__(self.pyfile, globals(), locals(), [], 0)
+                    pyhtml = mymodules.myPYHTMLContent( self )
+                except:
+                    st = "Error"
+                    response = '422 Unprocessable Entity and/or myPYHTMLContent not implemented'
+                    pass
                 sys.path.remove(self.path)
-                r = pyhtml.doMCUThings()
-                response = pyhtml.generate()
+                if st == '':
+                    try:
+                        r = pyhtml.doMCUThings()
+                        response = pyhtml.generate()
+                    except:
+                        st = "Error"
+                        response = '422 Unprocessable Entity'
+                        pass
+                    del pyhtml
+                    del mymodules
                 del sys.modules[self.pyfile]
-                del pyhtml
-                del mymodules
                 del self.path
                 del self.pyfile
-            message = 'HTTP/1.1 200 OK\n'
+            if st == '':
+                message = 'HTTP/1.1 200 OK\n'
+            else:
+                message = 'HTTP/1.1 422 Unprocessable Entity\n'
         else:       
             message = 'HTTP/1.1 404 Not Found\n'
             response = 'HTTP 404 - File not found!'
@@ -145,8 +160,9 @@ class myWebServer:
               status = "ok"
               response = ""
               message = ""
-              gc.collect()
               uri = self.explode_data(request)
+              del request
+              gc.collect()
               if 'Method' in self.HTTPRequestData.keys() and status=="ok":
                   if self.HTTPRequestData['Method'] not in ['GET','POST']:
                       status = "error"
@@ -200,5 +216,6 @@ class myWebServer:
               else:
                 self.sendHTTPAnswerHeader(conn, message, 'text/html', len(response.encode()))
                 conn.write(response.encode())
-                  
+                              
           conn.close()
+        

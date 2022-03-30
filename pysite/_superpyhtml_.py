@@ -2,7 +2,7 @@
 # Author: (c)2022 Tóthpál István <istvan@tothpal.eu>
 
 try:
-    import uos as os
+    import uos as os,gc
     MCUSERVER = True
 except:
     import os
@@ -11,75 +11,83 @@ except:
 class SuperPYHTML(object):
      
     def __init__(self, parent):
-        self.connection = parent.connection
-        self.configuration = parent.configuration
-        self.RequestData = parent.HTTPRequestData
+        self.conn = parent.connection
+        self.cfg = parent.configuration
+        self.RD = parent.HTTPRequestData
         self.Path = parent.path
         if self.Path[-1]!="/":
             self.Path += "/"
         self.PYFile = parent.pyfile
-        self.GET = self.explode_RequestData( 'URLQuery', '=', '&' )
-        self.POST = self.explode_RequestData( '_POST_', '=', '&' )
+        self.GET = self.explode_RD( 'URLQuery', '=', '&' )
+        self.POST = self.explode_RD( '_POST_', '=', '&' )
         self.Method = 'GET'
-        if 'Method' in self.RequestData.keys():
-            self.Method = self.RequestData['Method']
+        if 'Method' in self.RD.keys():
+            self.Method = self.RD['Method']
         self.set_initialdata()
         
+    def generate_menu(self):
+        mh = ""
+        for key in self.Menus:
+            mi=self.Menus[key]
+            mh += "<p>"
+            if self.selectedmenu == mi['id']:
+                mh += "<b>"
+            mh += "<a href='" + mi['targeturl'] + "'>" + mi['title'] + "</a>"
+            if self.selectedmenu == mi['id']:
+                mh += "</b>"
+            mh += "</p>"
+        return mh
+    
     def set_initialdata(self):
+        self.Menus = {}
         sentdata = self.GET.copy()
         if self.Method == 'POST':
             sentdata = self.POST.copy()
 
-        self.ExchangeData = {}
-        self.ExchangeData.update(sentdata)
+        self.XD = {}
+        self.XD.update(sentdata)
         self.data = self.PYFile
 
-    def explode_RequestData(self, field, equationseparator, itemseparator):
+    def explode_RD(self, field, equationseparator, itemseparator):
         data = ''
-        if field in self.RequestData.keys():
-            data = self.RequestData[field]
-        retval = {}
+        if field in self.RD.keys():
+            data = self.RD[field]
+        r = {}
         if data !='':
             dlist = data.split(itemseparator)
             for d in dlist:
                 item = d.split(equationseparator)
                 if len(item)==2:
-                    retval[item[0]]=item[1]
+                    r[item[0]]=item[1]
                 else:
-                    retval[d]=d
-        return retval
+                    r[d]=d
+        return r
             
     def doMCUThings(self):
         return True
     
     def fileExists(self,filename):
         try:
-            os.stat(filename)
-            return True;
+            return os.stat(filename)[6]
         except OSError:
             return False
 
     def generate_TMPLdata(self):
-        self.ExchangeData['TMPLdata'] = 'Generated template File'
-        retval = '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
-        retval+= '<html lang="en">'
-        retval+= '<head>'
-        retval+= '<meta http-equiv="content-language" content = "en">'
-        retval+= '  <meta http-equiv="content-type" content="text/html; charset=UTF-8">'
-        retval+= '</head>'
-        retval+= '<body>'
-
-        for key in self.ExchangeData:
-            retval+= '<p>' + key + ': {' + key + '}</p>'
-            
-        retval+= '</body>'
-        retval+= '</html>'
-        return retval        
+        self.XD['TMPLdata'] = 'Generated template File'
+        r = '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
+        r+= '<html lang="en"><head>'
+        r+= '<meta http-equiv="content-language" content = "en">'
+        r+= '  <meta http-equiv="content-type" content="text/html; charset=UTF-8">'
+        r+= '</head><body>'
+        for key in self.XD:
+            r+= '<p>' + key + ': {' + key + '}</p>'
+        r+= '</body></html>'
+        return r
 
     def read_TMPLfile(self, tmplfilename):
         retval = False;
         if self.fileExists(tmplfilename):
-            f = open(tmplfilename)
+            f = open(tmplfilename,'r')
             retval = f.read()
             f.close
         return retval        
@@ -87,11 +95,11 @@ class SuperPYHTML(object):
     def generate(self):
         tmplfilename = self.Path + self.PYFile + '.tmpl'
         retval = self.read_TMPLfile(tmplfilename)
+        gc.collect()
         if retval == False:
             retval = self.generate_TMPLdata()
         try:
-            html = str(retval).format(**self.ExchangeData)
-            return html
+            return retval.format(**self.XD)
         except KeyError as e:
             return '<h1>Error - Not all variables were set!</h1>' + retval                    
             pass

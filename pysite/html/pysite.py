@@ -3,30 +3,15 @@
 from _superpyhtml_ import SuperPYHTML,MCUSERVER
 
 if MCUSERVER:
-    from machine import Pin,I2C
+    from machine import Pin,I2C,RTC
     import utime as time
 else:
     import time
 
 class myPYHTMLContent(SuperPYHTML):
      
-    def generate_menu(self):
-        menuhtml = ""
-        for key in self.Menus:
-            menuitem=self.Menus[key]
-            menuhtml += "<p>"
-            if self.selectedmenu == menuitem['id']:
-                menuhtml += "<b>"
-            menuhtml += "<a href='" + menuitem['targeturl'] + "'>" + menuitem['title'] + "</a>"
-            if self.selectedmenu == menuitem['id']:
-                menuhtml += "</b>"
-            menuhtml += "</p>"
-        return menuhtml;
-    
     def set_initialdata(self):
         super(myPYHTMLContent,self).set_initialdata()
-        
-        self.Menus = {}
         self.Menus[0]= { 'id':0, 'title':'Welcome', 'targeturl':self.PYFile+'.py.html' }
         self.Menus[1]= { 'id':1, 'title':'Status', 'targeturl':self.PYFile+'.py.html?menu=1' }
         self.Menus[2]= { 'id':2, 'title':'Wifi', 'targeturl':self.PYFile+'.py.html?menu=2' }
@@ -35,66 +20,54 @@ class myPYHTMLContent(SuperPYHTML):
         if 'menu' in self.GET.keys():
                 self.selectedmenu = int(self.GET['menu'])
         query = ''
-        if 'URLQuery' in self.RequestData.keys():
-            query = self.RequestData['URLQuery']
+        if 'URLQuery' in self.RD.keys():
+            query = self.RD['URLQuery']
         cookies = ''
-        if 'Cookie' in self.RequestData.keys():
-            cookies = self.RequestData['Cookie']
+        if 'Cookie' in self.RD.keys():
+            cookies = self.RD['Cookie']
 
         if self.selectedmenu>=0 and self.selectedmenu<len(self.Menus):
-            if self.Menus[self.selectedmenu]['title'] == 'Welcome':
-                content = "<h1>Welcome"
+            title = self.Menus[self.selectedmenu]['title']
+            if title == 'Welcome':
+                c = "<h1>Welcome"
                 if self.POST != {}:
-                    content+= (" " + self.POST['fname'] if 'fname' in self.POST.keys() else "")
-                    content+= (" " + self.POST['lname'] if 'lname' in self.POST.keys() else "") 
+                    c+= (" " + self.POST['fname'] if 'fname' in self.POST.keys() else "")
+                    c+= (" " + self.POST['lname'] if 'lname' in self.POST.keys() else "") 
                 else:
                     if self.GET != {}:
-                        content+= (" " + self.GET['fname'] if 'fname' in self.GET.keys() else "")
-                        content+= (" " + self.GET['lname'] if 'lname' in self.GET.keys() else "")
-                content+= "</h1>"
-
-                content+= "<p>This is just an example page, You can see, how HTML data handled:</p>"
-
-                content+= "<p>Query: "+ query +"</p>"
-                content+= "<p>Posted: "+self.RequestData['_POST_']+"</p>"
-                content+= "<p>Cookies: "+cookies+"</p>"
-            elif self.Menus[self.selectedmenu]['title'] == 'Status':
-                content = "<h1>Status</h1>"
-                content+= "<p>Current time: %04d-%02d-%02d %02d:%02d:%02d</p>" % time.localtime()[:6]
-                content+= self.configuration.tohtml()
-            elif self.Menus[self.selectedmenu]['title'] == 'Wifi':
-                content = '<h1>WIFI</h1>'
-                content+= '<p>IP: %s</p>' % self.connection.get_address()
-                content+= '<p>Netmask: %s</p>' % self.connection.get_netmask()
-                content+= '<p>DNS: %s</p>' % ', '.join(self.connection.get_nameservers())
-                content+= '<form action="%s.py.html?menu=%d" method="post">' % (self.PYFile,self.selectedmenu)
-                content+= '  <p><label for="wifimode">Wifi mode: </label><select id="wifimode" name="wifimode">'
-                content+= '    <option value="AP"%s>AP</option>' % (' selected=1' if self.configuration.wifimode=='AP' else '')
-                content+= '    <option value="station"%s>Station</option>' % (' selected=1' if self.configuration.wifimode=='station' else '')
-                content+= '  </select></p>'
-                content+= '  <p><label for="ssid">SSID: </label><input type="text" id="ssid" name="ssid" value="%s"></p>' % self.configuration.ssid
-                content+= '  <p><label for="psk">PSK: </label><input type="text" id="psk" name="psk" value="%s"></p>' % self.configuration.passphrase
-                content+= '  <input name="WIFI" type="submit" value="Save">'
-                content+= '  <input name="WIFI" type="submit" value="Scan">'
-                content+= '</form><BR>'
-            elif self.Menus[self.selectedmenu]['title'] == 'I2C':
-                content = "<h1>I2C</h1>"
+                        c+= (" " + self.GET['fname'] if 'fname' in self.GET.keys() else "")
+                        c+= (" " + self.GET['lname'] if 'lname' in self.GET.keys() else "")
+                c+= "</h1>"
+                c+= "<p>This is just an example page, You can see, how HTML data handled:</p>"
+                c+= "<p>Query: "+ query +"</p>"
+                c+= "<p>Posted: "+self.RD['_POST_']+"</p>"
+                c+= "<p>Cookies: "+cookies+"</p>"
+            elif title == 'Status':
+                c = "<h1>Status</h1>"
+            elif title == 'Wifi':
+                c = '<h1>WIFI</h1>'
+                c+= '<p>IP: %s</p>' % self.conn.get_address()
+                c+= '<p>Netmask: %s</p>' % self.conn.get_netmask()
+                c+= '<p>DNS: %s</p>' % ', '.join(self.conn.get_nameservers())
+            elif title == 'I2C':
+                c = "<h1>I2C</h1>"
         else:
             content = "Invalid menu! - No Data!"
             
-        self.ExchangeData.update( {
+        self.XD.update( {
             "top": '<img style="float:left" src="TIS_mPy.jpg"><BR><h2 class=\"center\">Micropython webserver for ESP-12F</h2><hr style="clear:both">',
             "left": self.generate_menu(),
-            "content": content,
+            "content": c,
             "foot": "<hr><p class=\"center\">Example pySite addon to micropython-webserver by (c)2022 Tóthpál István</p>",
             } )
 
     def doMCUThings(self):
-        self.ExchangeData["MCUThings"]=""
+        self.XD["MCUThings"]=""
+        title = self.Menus[self.selectedmenu]['title']
         
         if self.selectedmenu>=0 and self.selectedmenu<len(self.Menus):
             if MCUSERVER:
-                if self.Menus[self.selectedmenu]['title'] == 'Welcome':
+                if title == 'Welcome':
                     LED = Pin(2, Pin.IN)
                     if 'LED' in self.POST.keys():
                         val = LED.value()
@@ -106,27 +79,56 @@ class myPYHTMLContent(SuperPYHTML):
                         elif self.POST['LED'] == "Toggle":
                             LED.value((val+1) % 2)
                     self.LedState = "off" if LED.value() else "on"
-                    self.ExchangeData["MCUThings"] = "<hr><p>Built-in LED state:" + self.LedState + "</p><BR>"
-                    self.ExchangeData["MCUThings"]+= "<form action='"+self.PYFile+".py.html' method='post'>"
-                    self.ExchangeData["MCUThings"]+= "  <input name='LED' type='submit' value='Turn On'>"
-                    self.ExchangeData["MCUThings"]+= "  <input name='LED' type='submit' value='Turn Off'>"
-                    self.ExchangeData["MCUThings"]+= "  <input name='LED' type='submit' value='Toggle'>"
-                    self.ExchangeData["MCUThings"]+= "</form><BR>"
-                elif self.Menus[self.selectedmenu]['title'] == 'Wifi':
+                    c = "<hr><p>Built-in LED state:" + self.LedState + "</p><BR>"
+                    c+= "<form action='"+self.PYFile+".py.html' method='post'>"
+                    c+= "  <input name='LED' type='submit' value='Turn On'>"
+                    c+= "  <input name='LED' type='submit' value='Turn Off'>"
+                    c+= "  <input name='LED' type='submit' value='Toggle'>"
+                    self.XD["MCUThings"]+= c+"</form><BR>"
+                elif title == 'Status':
+                    if 'STATUS' in self.POST.keys():
+                        if self.POST['STATUS'] == "Set+Time":
+                            d = self.POST['date'].split("-")
+                            t = self.POST['time'].split("%3A")
+                            RTC().datetime( (eval(d[0]),eval(d[1]),eval(d[2]),0,eval(t[0]),eval(t[1]),eval(t[2]),0) )
+                    t = time.localtime()[:6]
+                    c = "<p>Current time: %04d-%02d-%02d %02d:%02d:%02d</p>" % t
+                    c+= '<form action="%s.py.html?menu=%d" method="post">' % (self.PYFile,self.selectedmenu)
+                    c+= '  <p><label for="date">date: </label><input type="text" id="date" name="date" value="%04d-%02d-%02d"></p>' % (t[:3])
+                    c+= '  <p><label for="time">time: </label><input type="text" id="time" name="time" value="%02d:%02d:%02d"></p>' % (t[3:])
+                    c+= '  <input name="STATUS" type="submit" value="Set Time">'
+                    c+= '</form><BR>'
+                    c+= "<p>Current configuration:</p><pre class=\"ml30\">"
+                    for it in self.cfg.__dict__:
+                        c+= "<p>%s: %s</p>" % (it,self.cfg.__dict__[it])
+                    self.XD["MCUThings"]= c+"</pre>"
+                elif title == 'Wifi':
                     if 'WIFI' in self.POST.keys():
                         if self.POST['WIFI'] == "Scan":
-                            self.ExchangeData["MCUThings"]+= "<hr>Scan result:"
-                            aps = self.connection.scan()
+                            c = "<hr><p>Scan result:</p><pre class=\"ml30\">"
+                            aps = self.conn.scan()
                             for item in aps:
                                 mac = ":".join([hex(byte)[2:] for byte in item[1]])
-                                self.ExchangeData["MCUThings"] += "<p>%s : %d</p>" % (mac if item[5] else item[0].decode(),item[3])
+                                c += "<p>%s : %d</p>" % (mac if item[5] else item[0].decode(),item[3])
+                            self.XD["MCUThings"] = c + "</pre>"
                         if self.POST['WIFI'] == "Save":
-                            self.configuration.wifimode=self.POST['wifimode']
-                            self.configuration.ssid=self.POST['ssid']
-                            self.configuration.passphrase=self.POST['psk']
-                            self.configuration.saveconfig()
-                            self.ExchangeData["MCUThings"]+= 'Configuration saved... Please, restart server manualy'
-                elif self.Menus[self.selectedmenu]['title'] == 'I2C':
+                            self.cfg.wifimode=self.POST['wifimode']
+                            self.cfg.ssid=self.POST['ssid']
+                            self.cfg.passphrase=self.POST['psk']
+                            self.cfg.saveconfig()
+                            self.XD["MCUThings"]+= 'Configuration saved... Please, restart server manualy'
+                    c = '<form action="%s.py.html?menu=%d" method="post">' % (self.PYFile,self.selectedmenu)
+                    c+= '  <p><label for="wifimode">Wifi mode: </label><select id="wifimode" name="wifimode">'
+                    c+= '    <option value="AP"%s>AP</option>' % (' selected=1' if self.cfg.wifimode=='AP' else '')
+                    c+= '    <option value="station"%s>Station</option>' % (' selected=1' if self.cfg.wifimode=='station' else '')
+                    c+= '  </select></p>'
+                    c+= '  <p><label for="ssid">SSID: </label><input type="text" id="ssid" name="ssid" value="%s"></p>' % self.cfg.ssid
+                    c+= '  <p><label for="psk">PSK: </label><input type="text" id="psk" name="psk" value="%s"></p>' % self.cfg.passphrase
+                    c+= '  <input name="WIFI" type="submit" value="Save">'
+                    c+= '  <input name="WIFI" type="submit" value="Scan">'
+                    c+= '</form><BR>'
+                    self.XD["MCUThings"]= c+self.XD["MCUThings"]
+                elif title == 'I2C':
                     i2c = I2C( scl=Pin(5),sda=Pin(4),freq=100000 )
-                    self.ExchangeData["MCUThings"] = "<hr><p>I2C scan: {}</p>".format(i2c.scan())
+                    self.XD["MCUThings"] = "<hr><p>I2C scan: {}</p>".format(i2c.scan())
         return True

@@ -104,7 +104,7 @@ class myWebServer:
                 except Exception as e:
                     st = "Error"
                     response = '422 Unprocessable Entity and/or myPYHTMLContent not implemented'
-                    print(sys.print_exception(e))
+                    sys.print_exception(e)
                     pass
                 sys.path.remove(self.path)
                 if st == '':
@@ -114,7 +114,7 @@ class myWebServer:
                     except Exception as e:
                         st = "Error"
                         response = '422 Unprocessable Entity'
-                        print(sys.print_exception(e))
+                        sys.print_exception(e)
                         pass
                     del pyhtml
                     del mymodules

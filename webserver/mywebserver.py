@@ -91,7 +91,7 @@ class myWebServer:
         connection.write('Connection: close\n\n'.encode())
     
     def handlePYHTMLfile(self, filename, connection, ctype):
-        st = ''
+        st = True
         if self.fileExists(filename): 
             if filename[-3:] == ".py":
                 cutpoint = filename.rfind("/")
@@ -102,18 +102,16 @@ class myWebServer:
                     mymodules = __import__(self.pyfile, globals(), locals(), [], 0)
                     pyhtml = mymodules.myPYHTMLContent( self )
                 except Exception as e:
-                    st = "Error"
-                    response = '422 Unprocessable Entity and/or myPYHTMLContent not implemented'
+                    st = False
                     sys.print_exception(e)
                     pass
                 sys.path.remove(self.path)
-                if st == '':
+                if st:
                     try:
                         r = pyhtml.doMCUThings()
                         response = pyhtml.generate()
                     except Exception as e:
-                        st = "Error"
-                        response = '422 Unprocessable Entity'
+                        st = False
                         sys.print_exception(e)
                         pass
                     del pyhtml
@@ -121,13 +119,14 @@ class myWebServer:
                 del sys.modules[self.pyfile]
                 del self.path
                 del self.pyfile
-            if st == '':
+            if st:
                 message = 'HTTP/1.1 200 OK\n'
             else:
+                response= '422 Unprocessable Entity'
                 message = 'HTTP/1.1 422 Unprocessable Entity\n'
         else:       
             message = 'HTTP/1.1 404 Not Found\n'
-            response = 'HTTP 404 - File not found!'
+            response= 'HTTP 404 - File not found!'
 
         self.sendHTTPAnswerHeader(connection, message, ctype, len(response.encode()))
         connection.write(response.encode())

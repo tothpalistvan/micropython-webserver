@@ -101,18 +101,20 @@ class myWebServer:
                 try:
                     mymodules = __import__(self.pyfile, globals(), locals(), [], 0)
                     pyhtml = mymodules.myPYHTMLContent( self )
-                except:
+                except Exception as e:
                     st = "Error"
                     response = '422 Unprocessable Entity and/or myPYHTMLContent not implemented'
+                    print(sys.print_exception(e))
                     pass
                 sys.path.remove(self.path)
                 if st == '':
                     try:
                         r = pyhtml.doMCUThings()
                         response = pyhtml.generate()
-                    except:
+                    except Exception as e:
                         st = "Error"
                         response = '422 Unprocessable Entity'
+                        print(sys.print_exception(e))
                         pass
                     del pyhtml
                     del mymodules

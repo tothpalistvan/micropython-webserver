@@ -16,9 +16,14 @@ class myPYHTMLContent(SuperPYHTML):
         self.Menus[1]= { 'id':1, 'title':'Status', 'targeturl':self.PYFile+'.py.html?menu=1' }
         self.Menus[2]= { 'id':2, 'title':'Wifi', 'targeturl':self.PYFile+'.py.html?menu=2' }
         self.Menus[3]= { 'id':3, 'title':'I2C', 'targeturl':self.PYFile+'.py.html?menu=3' }
-        self.selectedmenu = 0
+        s = 0
         if 'menu' in self.GET.keys():
-                self.selectedmenu = int(self.GET['menu'])
+            try:
+                s = int(self.GET['menu'])
+            except:
+                s = 0
+                pass
+        self.selectedmenu = s
         query = ''
         if 'URLQuery' in self.RD.keys():
             query = self.RD['URLQuery']
@@ -88,9 +93,12 @@ class myPYHTMLContent(SuperPYHTML):
                 elif title == 'Status':
                     if 'STATUS' in self.POST.keys():
                         if self.POST['STATUS'] == "Set+Time":
-                            d = self.POST['date'].split("-")
-                            t = self.POST['time'].split("%3A")
-                            RTC().datetime( (eval(d[0]),eval(d[1]),eval(d[2]),0,eval(t[0]),eval(t[1]),eval(t[2]),0) )
+                            try:
+                                d = self.POST['date'].split("-")
+                                t = self.POST['time'].split("%3A")
+                                RTC().datetime( (eval(d[0]),eval(d[1]),eval(d[2]),0,eval(t[0]),eval(t[1]),eval(t[2]),0) )
+                            except:
+                                pass
                     t = time.localtime()[:6]
                     c = "<p>Current time: %04d-%02d-%02d %02d:%02d:%02d</p>" % t
                     c+= '<form action="%s.py.html?menu=%d" method="post">' % (self.PYFile,self.selectedmenu)

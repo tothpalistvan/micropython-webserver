@@ -51,9 +51,6 @@ class myConfiguration:
     def get_passphrase(self):
         return self.passphrase
 
-    def tohtml(self):
-        return "{}".format(self.__dict__)
-    
     def saveconfig(self):
         cfg={}
         cfg['wifi'] = { "wifimode":self.wifimode, "ssid":self.ssid, "passphrase":self.passphrase }

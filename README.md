@@ -1,5 +1,5 @@
 # micropython-webserver for ESP-12F
-A simple HTTP server on your MCU, designed to use in ESP-12F Wifi module, but it may work with antoher micropython MCU-s (e.g ESP32).
+A simple HTTP server on your MCU, designed to use in <a target="_blank" href="https://github.com/tothpalistvan/micropython-webserver/blob/main/img/ESP12F.jpg" title="ESP-12F Wifi module">ESP-12F Wifi module</a>, but it may work with antoher micropython MCU-s (e.g ESP32).
 
 There is an opportunity to run "server side script" to execute e.g. MCU commands in micropython. There is an example here how to do that. I'm creating another example called `pysite`.
 
@@ -54,4 +54,9 @@ References:
 https://docs.micropython.org/en/latest/esp8266/tutorial/ \
 https://docs.micropython.org/en/latest/esp8266/tutorial/network_tcp.html
 
+https://github.com/micropython/micropython \
 https://github.com/micropython/micropython/blob/master/examples/network/http_server.py
+
+https://www.espressif.com/en/support/documents/technical-documents?keys=&field_type_tid%5B%5D=14
+
+https://usermanual.wiki/Ai-Thinker-Technology/ESP12F

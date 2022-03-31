@@ -57,6 +57,8 @@ https://docs.micropython.org/en/latest/esp8266/tutorial/network_tcp.html
 https://github.com/micropython/micropython \
 https://github.com/micropython/micropython/blob/master/examples/network/http_server.py
 
-https://www.espressif.com/en/support/documents/technical-documents?keys=&field_type_tid%5B%5D=14
+https://www.ietf.org/rfc/rfc2616.txt \
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
 
+https://www.espressif.com/en/support/documents/technical-documents?keys=&field_type_tid%5B%5D=14 \
 https://usermanual.wiki/Ai-Thinker-Technology/ESP12F

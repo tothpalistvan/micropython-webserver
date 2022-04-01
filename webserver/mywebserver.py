@@ -92,7 +92,7 @@ class myWebServer:
     
     def handlePYHTMLfile(self, filename, connection, ctype):
         st = True
-        if self.fileExists(filename): 
+        if self.fileExists(filename) or self.fileExists(filename[:-3]+".mpy"): 
             if filename[-3:] == ".py":
                 cutpoint = filename.rfind("/")
                 self.path = filename[:cutpoint]

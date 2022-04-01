@@ -2,7 +2,7 @@ About:
 ------
 This folder contains the precompiled version of this micropython files. (Using this version may use less RAM as these files are smaller)
 
-created with:
+created with (https://github.com/micropython/micropython/tree/master/mpy-cross):
 ```
   mpy-cross -march=xtensa
 ```

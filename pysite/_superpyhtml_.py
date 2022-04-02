@@ -12,7 +12,7 @@ class SuperPYHTML(object):
      
     def __init__(self, parent):
         self.conn = parent.connection
-        self.cfg = parent.configuration
+        self.cfg = parent.cfg
         self.RD = parent.HTTPRequestData
         self.Path = parent.path
         if self.Path[-1]!="/":

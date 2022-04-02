@@ -6,20 +6,22 @@ class myWebServer:
 
     def __init__(self, connection):
         self.connection = connection
-        self.configuration = self.connection.get_configuration()
-        self.HTMLBasePath = self.configuration.getHTMLBasePath()
-        self.DefaultFile = self.configuration.getDefaultFile()
+        self.cfg = self.connection.get_configuration()
+        self.HTMLBasePath = self.cfg.getHTMLBasePath()
+        self.DefaultFile = self.cfg.getDefaultFile()
         self.filepartsize = 1024
         self.HTTPRequestData = {}
         message = ''
         
         if not self.connection.isconnected():
-            if (not self.connection.connect(True, 300)) and (self.configuration.wifimode == "station"):
+            if (not self.connection.connect(True, 300)) and (self.cfg.wifimode == "station"):
                 message = 'Error - No connection!'
         if self.connection.isconnected():
             message = self.connection.get_address()
-        
         print("myWebServer init...", message)
+
+        if self.cfg.ntp:
+            self.cfg.syncntp(self.cfg.tzd)            
 
         self.mysock = socket.socket()
        
@@ -219,4 +221,3 @@ class myWebServer:
                 conn.write(response.encode())
                               
           conn.close()
-        

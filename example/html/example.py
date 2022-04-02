@@ -5,7 +5,7 @@ from machine import Pin
 class myPYHTMLContent(object):
     
     def __init__(self, parent):
-        self.configuration = parent.configuration
+        self.configuration = parent.cfg
         self.RequestData = parent.HTTPRequestData
         self.Path = parent.path
         if self.Path[-1]!="/":

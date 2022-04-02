@@ -90,7 +90,7 @@ class myConfiguration:
         t=0
         while t<tries:
             try:
-                gmt = utime.localtime(ntptime.time())
+                gmt = utime.gmtime(ntptime.time())
                 RTC().datetime( (gmt[0],gmt[1],gmt[2],gmt[6],gmt[3]+tzd,gmt[4],gmt[5],0) )
                 break
             except Exception as e:

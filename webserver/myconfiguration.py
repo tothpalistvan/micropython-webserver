@@ -38,9 +38,6 @@ class myConfiguration:
                     self.ntp = cfg['time']['ntp']
                 if 'tzd' in cfg['time'].keys():
                     self.tzd = cfg['time']['tzd']
- 
-        if self.ntp:
-            self.syncntp(self.tzd)
         print("myconfig init...")
 
     def getHTMLBasePath(self):

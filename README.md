@@ -32,6 +32,9 @@ Currently at the `myconfiguration` you can specify the default basic settings.
         self.wifimode = 'AP'
         self.ssid = 'ESP12F-WIFI'
         self.passphrase = 'EspWifi1234'
+
+        self.ntp = False
+        self.tzd = 1 #timezone addon (difference from GMT time with Daylight Savings)
 ```
 But config file prefered, you can save one as `myconfig.cfg`:
 ```
@@ -45,6 +48,10 @@ But config file prefered, you can save one as `myconfig.cfg`:
     'port': 80, 
     'htmlbasepath': '/html', 
     'defaultfile': 'index.html'
+    },
+'time': {
+    'ntp': True,
+    'tzd': 2
     }
 }
 ```

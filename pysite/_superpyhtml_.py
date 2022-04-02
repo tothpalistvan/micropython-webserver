@@ -23,6 +23,7 @@ class SuperPYHTML(object):
         self.Method = 'GET'
         if 'Method' in self.RD.keys():
             self.Method = self.RD['Method']
+        self.tfn = self.Path + self.PYFile + '.tmpl'
         self.set_initialdata()
         
     def generate_menu(self):
@@ -40,6 +41,10 @@ class SuperPYHTML(object):
     
     def set_initialdata(self):
         self.Menus = {}
+        self.Menus[0]= { 'id':0, 'title':'Welcome', 'targeturl':'pysite.py.html' }
+        self.Menus[1]= { 'id':1, 'title':'Status', 'targeturl':'pysitestatus.py.html' }
+        self.Menus[2]= { 'id':2, 'title':'Wifi', 'targeturl':'pysitewifi.py.html' }
+        self.Menus[3]= { 'id':3, 'title':'I2C', 'targeturl':'pysite.py.html?menu=3' }
         sentdata = self.GET.copy()
         if self.Method == 'POST':
             sentdata = self.POST.copy()
@@ -84,17 +89,16 @@ class SuperPYHTML(object):
         r+= '</body></html>'
         return r
 
-    def read_TMPLfile(self, tmplfilename):
+    def read_TMPLfile(self, tfn):
         retval = False;
-        if self.fileExists(tmplfilename):
-            f = open(tmplfilename,'r')
+        if self.fileExists(tfn):
+            f = open(tfn,'r')
             retval = f.read()
             f.close
         return retval        
                 
     def generate(self):
-        tmplfilename = self.Path + self.PYFile + '.tmpl'
-        retval = self.read_TMPLfile(tmplfilename)
+        retval = self.read_TMPLfile(self.tfn)
         gc.collect()
         if retval == False:
             retval = self.generate_TMPLdata()

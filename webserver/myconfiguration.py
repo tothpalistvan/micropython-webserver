@@ -12,6 +12,9 @@ class myConfiguration:
         self.wifimode = 'AP'
         self.ssid = 'ESP12F-WIFI'
         self.passphrase = 'EspWifi1234'
+        
+        self.ntp = False
+        self.tzd = 1
 
         cfg = self.loadconfig()
         
@@ -30,7 +33,14 @@ class myConfiguration:
                     self.ssid = cfg['wifi']['ssid']
                 if 'passphrase' in cfg['wifi'].keys():
                     self.passphrase = cfg['wifi']['passphrase']
+            if 'time' in cfg.keys():
+                if 'ntp' in cfg['time'].keys():
+                    self.ntp = cfg['time']['ntp']
+                if 'tzd' in cfg['time'].keys():
+                    self.tzd = cfg['time']['tzd']
  
+        if self.ntp:
+            self.syncntp(self.tzd)
         print("myconfig init...")
 
     def getHTMLBasePath(self):
@@ -55,6 +65,7 @@ class myConfiguration:
         cfg={}
         cfg['wifi'] = { "wifimode":self.wifimode, "ssid":self.ssid, "passphrase":self.passphrase }
         cfg['server'] = { "port":self.Port, "htmlbasepath":self.HTMLBasePath, "defaultfile":self.DefaultFile}
+        cfg['time'] = { "ntp":self.ntp, "tzd":self.tzd }
 
         filedata = "{}".format(cfg)
         
@@ -75,3 +86,18 @@ class myConfiguration:
             pass
         
         return cfg
+
+    def syncntp(self, tzd, tries=3):
+        from machine import RTC
+        import utime,ntptime
+        t=0
+        while t<tries:
+            try:
+                gmt = utime.localtime(ntptime.time())
+                RTC().datetime( (gmt[0],gmt[1],gmt[2],gmt[6],gmt[3]+tzd,gmt[4],gmt[5],0) )
+                break
+            except Exception as e:
+                import sys
+                sys.print_exception(e)
+                pass
+            t+=1

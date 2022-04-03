@@ -47,4 +47,4 @@ class SuperPYHTML(object):
     def get_XD(self):
         return self.XD
 ```
-The tmpl file is a HTML file with `{keys}` pattern. Each pattern like this will be changed to value of each `self.XD[keys]`.
+The tmpl file is a HTML file with `{keys}` patterns. Each pattern like this will be changed to value of each `self.XD[keys]`.

@@ -8,7 +8,7 @@ else:
     import time
 
 class myPYHTMLContent(SuperPYHTML):
-     
+    
     def set_initialdata(self):
         super(myPYHTMLContent,self).set_initialdata()
         s = 0

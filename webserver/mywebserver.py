@@ -94,6 +94,7 @@ class myWebServer:
     
     def handlePYHTMLfile(self, filename, connection, ctype):
         st = True
+        tfn = ''
         if self.fileExists(filename) or self.fileExists(filename[:-3]+".mpy"): 
             if filename[-3:] == ".py":
                 cutpoint = filename.rfind("/")
@@ -110,14 +111,53 @@ class myWebServer:
                 sys.path.remove(self.path)
                 if st:
                     try:
-                        r = pyhtml.doMCUThings()
-                        response = pyhtml.generate()
+                        pyhtml.doMCUThings()
                     except Exception as e:
                         st = False
                         sys.print_exception(e)
-                        pass
-                    del pyhtml
-                    del mymodules
+                        pass                        
+                if st:
+                    if hasattr(pyhtml,"get_tmplfn") and hasattr(pyhtml,"get_XD"):
+                        try:
+                            tfn = pyhtml.get_tmplfn()
+                            XD = pyhtml.get_XD()
+                        except Exception as e:
+                            st = False
+                            sys.print_exception(e)
+                            pass                        
+                        if st and self.fileExists(tfn):
+                            del pyhtml
+                            del mymodules
+                            gc.collect()
+                            f = open(tfn,'r')
+                            response = f.read()
+                            f.close
+                            try:
+                                response = response.format(**XD)
+                            except KeyError as e:
+                                response = '<h1>Error - Not all variables were set!</h1>' + response                    
+                            pass
+                        else:
+                            if hasattr(pyhtml,"generate_TMPLdata"):
+                                try:
+                                    response = pyhtml.generate_TMPLdata()
+                                except Exception as e:
+                                    st = False
+                                    sys.print_exception(e)
+                                    pass                        
+                            else:
+                                response = "No data"
+                            del pyhtml
+                            del mymodules
+                    else:
+                        try:
+                            response = pyhtml.generate()
+                        except Exception as e:
+                            st = False
+                            sys.print_exception(e)
+                            pass
+                        del pyhtml
+                        del mymodules
                 del sys.modules[self.pyfile]
                 del self.path
                 del self.pyfile

@@ -26,6 +26,9 @@ class SuperPYHTML(object):
         self.tfn = self.Path + self.PYFile + '.tmpl'
         self.set_initialdata()
         
+    def get_tmplfn(self):
+        return self.tfn
+     
     def generate_menu(self):
         mh = ""
         for key in self.Menus:
@@ -71,12 +74,6 @@ class SuperPYHTML(object):
     def doMCUThings(self):
         return True
     
-    def fileExists(self,filename):
-        try:
-            return os.stat(filename)[6]
-        except OSError:
-            return False
-
     def generate_TMPLdata(self):
         self.XD['TMPLdata'] = 'Generated template File'
         r = '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">'
@@ -85,26 +82,10 @@ class SuperPYHTML(object):
         r+= '  <meta http-equiv="content-type" content="text/html; charset=UTF-8">'
         r+= '</head><body>'
         for key in self.XD:
-            r+= '<p>' + key + ': {' + key + '}</p>'
+            r+= '<p>' + key + ': ' + self.XD[key] + '</p>'
         r+= '</body></html>'
         return r
 
-    def read_TMPLfile(self, tfn):
-        retval = False;
-        if self.fileExists(tfn):
-            f = open(tfn,'r')
-            retval = f.read()
-            f.close
-        return retval        
-                
-    def generate(self):
-        retval = self.read_TMPLfile(self.tfn)
-        gc.collect()
-        if retval == False:
-            retval = self.generate_TMPLdata()
-        try:
-            return retval.format(**self.XD)
-        except KeyError as e:
-            return '<h1>Error - Not all variables were set!</h1>' + retval                    
-            pass
-        return self.data
+    def get_XD(self):
+        return self.XD
+     

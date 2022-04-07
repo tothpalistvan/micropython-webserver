@@ -4,6 +4,11 @@
   <meta http-equiv="content-language" content = "en">
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <link rel="stylesheet" href="pysite.css" type="text/css">
+  <script type="text/JavaScript" src="pysitei2c.js"></script>
+<script>
+    I2Cscan={scan};
+    addr={i2ca};
+</script>
 </head>
 <body>
 <div id="page" align="center">
@@ -11,15 +16,21 @@
     <div id="top">{top}</div>
     <div id="middle">
         <div id="left">
-            {left}
+          {left}
         </div>
         <div id="content">
-            {content}
-            {MCUThings}
+            <h1>I2C</h1>
+            <p>If you have connected any I2C device to SCL=PIN5, SDA=PIN4 (e.g. a 24c02 EEPROM), you can dump it.</p>
+            <hr>
+            <div id="scan"></div>
+            <form action='pysitei2c.py.html' method='post'>
+                <input name='I2C' type='submit' value='Scan'>
+                <p id="dump"></p>
+            </form><BR>
+            <pre class="ml30">{dump}</pre>
         </div>
     </div>
     <div id="foot">{foot}</div>
-    </div>
 </div>
 </body>
 </html>

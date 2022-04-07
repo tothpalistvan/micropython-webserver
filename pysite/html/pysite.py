@@ -11,14 +11,7 @@ class myPYHTMLContent(SuperPYHTML):
     
     def set_initialdata(self):
         super(myPYHTMLContent,self).set_initialdata()
-        s = 0
-        if 'menu' in self.GET.keys():
-            try:
-                s = int(self.GET['menu'])
-            except:
-                s = 0
-                pass
-        self.selm = s if s in [0,3] else 0
+        self.selm = 0
         query = ''
         if 'URLQuery' in self.RD.keys():
             query = self.RD['URLQuery']
@@ -45,8 +38,6 @@ class myPYHTMLContent(SuperPYHTML):
                 for k in ck:
                     c+= "<p>%s = %s</p>" % (k,ck[k])
                 c+= "</pre>"
-            elif title == 'I2C':
-                c = "<h1>I2C</h1>"
         else:
             content = "Invalid menu! - No Data!"
             
@@ -83,8 +74,4 @@ class myPYHTMLContent(SuperPYHTML):
                     c+= "  <input name='LED' type='submit' value='Toggle'>"
                     self.XD["MCUThings"]+= c+"</form><BR>"
                     del c
-                elif title == 'I2C':
-                    from machine import Pin,I2C
-                    i2c = I2C( scl=Pin(5),sda=Pin(4),freq=100000 )
-                    self.XD["MCUThings"] = "<hr><p>I2C scan: {}</p>".format(i2c.scan())
         return True

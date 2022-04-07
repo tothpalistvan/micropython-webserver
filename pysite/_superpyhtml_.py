@@ -48,6 +48,7 @@ class SuperPYHTML(object):
         self.Menus[1]= { 'id':1, 'title':'Status', 'targeturl':'pysitestatus.py.html' }
         self.Menus[2]= { 'id':2, 'title':'Wifi', 'targeturl':'pysitewifi.py.html' }
         self.Menus[3]= { 'id':3, 'title':'I2C', 'targeturl':'pysitei2c.py.html' }
+        self.Menus[4]= { 'id':4, 'title':'SPI', 'targeturl':'pysitespi.py.html' }
         sentdata = self.GET.copy()
         if self.Method == 'POST':
             sentdata = self.POST.copy()

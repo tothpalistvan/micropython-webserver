@@ -15,7 +15,7 @@ class myPYHTMLContent(SuperPYHTML):
         self.selm = 4
           
         c = "<h1>SPI</h1>"
-        c+= "<p>Trying to read AT25 flash Manufacturer ID using sck=Pin(14),mosi=Pin(13),miso=Pin(12),cs=Pin(16)</p><hr>"
+        c+= "<p>Trying to read AT25 flash (e.g. AT25DF321A) Manufacturer ID using sck=Pin(14),mosi=Pin(13),miso=Pin(12),cs=Pin(16)</p><hr>"
 
         self.XD.update( {
             "top": '<img style="float:left" src="TIS_mPy.jpg"><BR><h2 class=\"center\">Micropython webserver for ESP-12F</h2><hr style="clear:both">',
@@ -33,15 +33,13 @@ class myPYHTMLContent(SuperPYHTML):
             if MCUSERVER:
                 if title == 'SPI':
                     from machine import Pin,SoftSPI
-                    import time
-                    spi = SoftSPI(baudrate=400000,sck=Pin(14),mosi=Pin(13),miso=Pin(12))
+                    spi = SoftSPI(baudrate=40000,sck=Pin(14),mosi=Pin(13),miso=Pin(12))
                     cs = Pin(16,Pin.OUT)
                     cs(0)
                     rx = bytearray(4)
                     spi.write(b'\x9f')
                     rx = spi.read(4,0)
                     cs(1)
-                    time.sleep_ms(50)
                     self.XD["MCUThings"]=" ".join([("0x%02x" % x) for x in rx])
         del c
         return True
